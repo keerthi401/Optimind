@@ -28,9 +28,7 @@ export function errorHandler(err, req, res, next) {
     success: false,
     error: {
       code: err.code || (isServerFault ? 'INTERNAL_SERVER_ERROR' : 'BAD_REQUEST'),
-      message: isServerFault && env.IS_PROD
-        ? 'An unexpected internal error occurred. Please try again later.'
-        : err.message || 'An unexpected error occurred.',
+      message: err.message || 'An unexpected error occurred. Please try again.',
     },
   };
 

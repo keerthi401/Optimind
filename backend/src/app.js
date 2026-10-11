@@ -34,17 +34,24 @@ export function createApp() {
         // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
         if (!origin) return callback(null, true);
 
-        const isAllowed = env.ALLOWED_ORIGINS.some((allowed) => {
-          if (allowed === '*' || allowed === origin) return true;
-          // Support localhost and 127.0.0.1 wildcard port matching in development
-          if (env.IS_DEV && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))) return true;
-          return false;
-        });
+        const isAllowed =
+          env.ALLOWED_ORIGINS.some((allowed) => {
+            if (allowed === '*' || allowed === origin) return true;
+            if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return true;
+            return false;
+          }) ||
+          origin.endsWith('.vercel.app') ||
+          origin.includes('vercel.app') ||
+          origin === 'https://vercel.live' ||
+          Boolean(process.env.VERCEL);
 
         if (isAllowed) {
           callback(null, true);
         } else {
-          callback(new Error(`CORS blocked request from origin: ${origin}`));
+          const corsErr = new Error(`CORS blocked request from origin: ${origin}`);
+          corsErr.statusCode = 403;
+          corsErr.code = 'CORS_NOT_ALLOWED';
+          callback(corsErr);
         }
       },
       credentials: true,
